@@ -1,6 +1,7 @@
 import HeroSection from "@/components/HeroSection";
 import EmailAnalyzer from "@/components/EmailAnalyzer";
 import TipsSection from "@/components/TipsSection";
+import CreatorSection from "@/components/CreatorSection";
 import { Shield } from "lucide-react";
 
 const Index = () => (
