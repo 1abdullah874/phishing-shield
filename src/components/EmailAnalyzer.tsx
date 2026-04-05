@@ -51,9 +51,18 @@ const EmailAnalyzer = () => {
     if (!emailText.trim()) return;
     setIsAnalyzing(true);
     setResult(null);
-    await new Promise((r) => setTimeout(r, 1800));
-    const analysis = analyzeEmail(emailText);
-    setResult(analysis);
+    try {
+      const response = await checkEmail(emailText);
+      const analysis = mapApiResponse(response);
+      setResult(analysis);
+    } catch (error) {
+      console.error("Analysis failed:", error);
+      setResult({
+        score: 0,
+        verdict: "safe",
+        flags: [{ type: "warning", label: "Analysis Failed", detail: "Could not connect to the analysis server. Please try again later." }],
+      });
+    }
     setIsAnalyzing(false);
   };
 
