@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Shield, AlertTriangle, CheckCircle, Loader2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AnalysisResults from "./AnalysisResults";
+import { checkEmail } from "@/services/phishingApi";
 
 interface ThreatFlag {
   type: "danger" | "warning" | "safe";
@@ -16,60 +17,27 @@ export interface AnalysisResult {
   flags: ThreatFlag[];
 }
 
-const analyzeEmail = (text: string): AnalysisResult => {
+const mapApiResponse = (response: { is_phishing: boolean; confidence: number; risk_level: string }): AnalysisResult => {
+  const score = Math.round(response.confidence * 100);
   const flags: ThreatFlag[] = [];
-  let score = 0;
 
-  const urgentWords = /urgent|immediately|act now|expire|suspend|verify your|confirm your|within 24/gi;
-  const suspiciousLinks = /click here|bit\.ly|tinyurl|goo\.gl|t\.co|shortened/gi;
-  const personalInfo = /password|ssn|social security|credit card|bank account|pin number/gi;
-  const spoofPatterns = /dear customer|dear user|valued member|account holder/gi;
-  const threatPatterns = /account will be|will be closed|will be suspended|unauthorized|locked out/gi;
-  const grammarIssues = /\b(kindly|do the needful|revert back|please to)\b/gi;
-
-  const urgentMatches = text.match(urgentWords);
-  if (urgentMatches) {
-    score += Math.min(urgentMatches.length * 15, 30);
-    flags.push({ type: "danger", label: "Urgency Tactics", detail: `Found ${urgentMatches.length} urgency-inducing phrase(s) designed to pressure you into acting quickly.` });
+  if (response.is_phishing) {
+    flags.push({
+      type: response.risk_level === "high" ? "danger" : "warning",
+      label: `${response.risk_level.charAt(0).toUpperCase() + response.risk_level.slice(1)} Risk Phishing`,
+      detail: `Our AI model detected this email as phishing with ${score}% confidence.`,
+    });
+  } else {
+    flags.push({
+      type: "safe",
+      label: "No Threats Detected",
+      detail: `The email appears safe with ${100 - score}% confidence. Always stay cautious with unexpected emails.`,
+    });
   }
 
-  const linkMatches = text.match(suspiciousLinks);
-  if (linkMatches) {
-    score += Math.min(linkMatches.length * 20, 30);
-    flags.push({ type: "danger", label: "Suspicious Links", detail: `Detected ${linkMatches.length} potentially malicious or shortened link(s).` });
-  }
-
-  const infoMatches = text.match(personalInfo);
-  if (infoMatches) {
-    score += Math.min(infoMatches.length * 20, 30);
-    flags.push({ type: "danger", label: "Personal Info Request", detail: `The email requests sensitive information (${infoMatches.map(m => m.toLowerCase()).join(", ")}).` });
-  }
-
-  const spoofMatches = text.match(spoofPatterns);
-  if (spoofMatches) {
-    score += 15;
-    flags.push({ type: "warning", label: "Generic Greeting", detail: "Uses a generic greeting instead of your name — common in phishing emails." });
-  }
-
-  const threatMatches = text.match(threatPatterns);
-  if (threatMatches) {
-    score += 20;
-    flags.push({ type: "danger", label: "Threat Language", detail: "Contains threatening language about account suspension or closure." });
-  }
-
-  const grammarMatches = text.match(grammarIssues);
-  if (grammarMatches) {
-    score += 10;
-    flags.push({ type: "warning", label: "Grammar Issues", detail: "Contains unusual phrasing commonly found in phishing emails." });
-  }
-
-  if (flags.length === 0) {
-    flags.push({ type: "safe", label: "No Threats Detected", detail: "No obvious phishing indicators were found. Always stay cautious with unexpected emails." });
-  }
-
-  score = Math.min(score, 100);
-
-  const verdict: AnalysisResult["verdict"] = score >= 60 ? "dangerous" : score >= 30 ? "suspicious" : "safe";
+  const verdict: AnalysisResult["verdict"] =
+    response.risk_level === "high" ? "dangerous" :
+    response.risk_level === "medium" ? "suspicious" : "safe";
 
   return { score, verdict, flags };
 };
