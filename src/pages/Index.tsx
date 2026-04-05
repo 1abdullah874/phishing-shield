@@ -1,6 +1,7 @@
 import HeroSection from "@/components/HeroSection";
 import EmailAnalyzer from "@/components/EmailAnalyzer";
 import TipsSection from "@/components/TipsSection";
+import CreatorSection from "@/components/CreatorSection";
 import { Shield } from "lucide-react";
 
 const Index = () => (
@@ -21,6 +22,7 @@ const Index = () => (
     <HeroSection />
     <EmailAnalyzer />
     <TipsSection />
+    <CreatorSection />
 
     {/* Footer */}
     <footer className="border-t border-border/50 py-8 text-center">
