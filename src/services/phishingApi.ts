@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'https://phishing-detector-are5.onrender.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://phishing.up.railway.app/';
 
 export interface PredictionResponse {
   is_phishing: boolean;
