@@ -22,6 +22,7 @@ const Index = () => (
     <HeroSection />
     <EmailAnalyzer />
     <TipsSection />
+    <CreatorSection />
 
     {/* Footer */}
     <footer className="border-t border-border/50 py-8 text-center">
